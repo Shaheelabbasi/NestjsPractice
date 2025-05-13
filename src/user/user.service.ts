@@ -1,16 +1,18 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/user.dto'
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entity/user.entity';
 import { Repository } from 'typeorm';
 import { LoginDto } from './dto/login.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
 
     constructor(
         @InjectRepository(User)
-        private readonly userRepository:Repository<User>
+        private readonly userRepository:Repository<User>,
+        private jwtService:JwtService
     ){}
 
    async SignUp(userdto:CreateUserDto):Promise<User>{
@@ -36,16 +38,41 @@ export class UserService {
             throw new BadRequestException("user does not exist")
         }
         
-        if(IsExisting.password==password)
+        if(IsExisting.password!=password)
         {
-            return {
-                status:200,
-                message:"logged in successfully"
-            }
-        }
-        else{
+        
             throw new BadRequestException("Incorrect password")
         }
 
+        const token=this.jwtService.sign({id:IsExisting.id,email:IsExisting.email})
+
+        return {
+            message:"login successfull",
+            token
+        }
+
+    }
+
+    VerifyJwt(token:string){
+
+        try {
+            const decoded=this.jwtService.verify(token)
+            return {user:decoded}
+        } catch (error) {
+            
+            if(error.name=="TokenExpiredError")
+            {
+                throw new UnauthorizedException("token is expired")
+            }
+        }
+        
+
+       
+    }
+
+    Dashboard(){
+        return {
+            message:"private route accesssed"
+        }
     }
 }

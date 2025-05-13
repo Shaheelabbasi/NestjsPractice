@@ -9,9 +9,12 @@ import { UserController } from './user/user.controller';
 import { UserService } from './user/user.service';
 
 
+
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal:true
+    }),
     TypeOrmModule.forRootAsync({
       imports:[ConfigModule],
       useFactory:(configService:ConfigService)=>({
@@ -27,6 +30,7 @@ import { UserService } from './user/user.service';
       }),
       inject:[ConfigService]
     }),
+    
     UserModule
   ],
   controllers: [AppController],

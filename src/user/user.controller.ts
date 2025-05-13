@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/user.dto';
 import { LoginDto } from './dto/login.dto';
@@ -28,6 +28,21 @@ Signup(@Body() userdto:CreateUserDto):any{
 Login (@Body() logindto:LoginDto){
 
     return this.userService.Login(logindto)
+}
+
+//protected route for jwt authentication
+@Get("dashboard")
+Dashboard(@Req() req:any){
+
+    const token=req.headers.authorization?.split(" ")[1]
+
+   const decoded= this.userService.VerifyJwt(token)
+
+    if(decoded?.user!=null)
+    {
+      return this.userService.Dashboard()
+    }
+
 }
 
 
